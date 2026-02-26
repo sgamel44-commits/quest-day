@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quest Day ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: #4a4638;
+  color: #f5f0e8;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #33312a; }
+::-webkit-scrollbar-thumb { background: #4a4638; border-radius: 3px; }
+
+@keyframes shimmer { 0%{left:-120%} 100%{left:220%} }
+@keyframes modalPop { 0%{transform:scale(0.75) translateY(20px);opacity:0} 100%{transform:scale(1) translateY(0);opacity:1} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes prizeReveal { 0%{transform:scale(0.3) rotate(-15deg);opacity:0} 60%{transform:scale(1.15) rotate(5deg);opacity:1} 100%{transform:scale(1) rotate(0);opacity:1} }
+@keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
+@keyframes xpPulse { 0%,100%{box-shadow:0 0 10px rgba(247,159,121,0.3)} 50%{box-shadow:0 0 30px rgba(247,159,121,0.7)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes confetti { 0%{transform:translateY(-10px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+@keyframes badgeIn { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.2);opacity:1} 100%{transform:scale(1);opacity:1} }
+@keyframes glow-pulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.3)} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+
+const LARGE_STICKERS = [
+  {id:"ls1",  name:"T-Rex",          emoji:"🦖", desc:"Apex Predator",    color:"#E3F09B", glow:"rgba(74,222,128,0.5)",  rarity:"legendary"},
+  {id:"ls2",  name:"Triceratops",    emoji:"🦕", desc:"Three Horns",      color:"#87B6A7", glow:"rgba(56,189,248,0.5)",  rarity:"legendary"},
+  {id:"ls3",  name:"Pterodactyl",    emoji:"🦅", desc:"Sky Ruler",        color:"#F79F79", glow:"rgba(248,113,113,0.5)", rarity:"legendary"},
+  {id:"ls4",  name:"Stegosaurus",    emoji:"🦴", desc:"Spiky Back",       color:"#F7D08A", glow:"rgba(251,191,36,0.5)",  rarity:"legendary"},
+  {id:"ls5",  name:"Amethyst",       emoji:"💜", desc:"Purple Crystal",   color:"#a855f7", glow:"rgba(168,85,247,0.7)",  rarity:"legendary"},
+  {id:"ls6",  name:"Rose Quartz",    emoji:"🌸", desc:"Pink Gem",         color:"#F79F79", glow:"rgba(244,114,182,0.7)", rarity:"legendary"},
+  {id:"ls7",  name:"Emerald",        emoji:"💚", desc:"Green Gem",        color:"#87B6A7", glow:"rgba(16,185,129,0.7)",  rarity:"legendary"},
+  {id:"ls8",  name:"Sapphire",       emoji:"💙", desc:"Blue Gem",         color:"#87B6A7", glow:"rgba(59,130,246,0.7)",  rarity:"legendary"},
+  {id:"ls9",  name:"NYC Skyline",    emoji:"🌆", desc:"City That Never Sleeps", color:"#F79F79", glow:"rgba(129,140,248,0.6)", rarity:"legendary"},
+  {id:"ls10", name:"Seattle Space",  emoji:"🚀", desc:"The Emerald City", color:"#87B6A7", glow:"rgba(52,211,153,0.6)",  rarity:"legendary"},
+  {id:"ls11", name:"Denver Peaks",   emoji:"🏔️", desc:"Mile High",        color:"#87B6A7", glow:"rgba(96,165,250,0.6)",  rarity:"legendary"},
+  {id:"ls12", name:"Sunflower",      emoji:"🌻", desc:"Always Looking Up",color:"#eab308", glow:"rgba(234,179,8,0.6)",   rarity:"legendary"},
+  {id:"ls13", name:"Rainbow Dragon", emoji:"🐉", desc:"Mythical Beast",   color:"#e06060", glow:"rgba(244,63,94,0.6)",   rarity:"legendary"},
+  {id:"ls14", name:"Golden Crown",   emoji:"👑", desc:"Royalty",          color:"#ffd700", glow:"rgba(255,215,0,0.7)",   rarity:"legendary"},
+];
+
+const BLOB_POOL = [
+  {id:"b1",  label:"Bubblegum",   bg:"linear-gradient(135deg,#fecdd3,#e06060)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b2",  label:"Ocean",       bg:"linear-gradient(135deg,#7dd3fc,#5b8f82)",           shine:"rgba(255,255,255,0.35)"},
+  {id:"b3",  label:"Lime",        bg:"linear-gradient(135deg,#d9f99d,#8aaa30)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b4",  label:"Lavender",    bg:"linear-gradient(135deg,#e9d5ff,#d4935a)",           shine:"rgba(255,255,255,0.35)"},
+  {id:"b5",  label:"Sunshine",    bg:"radial-gradient(circle at 35% 35%,#fef08a,#ca8a04)",shine:"rgba(255,255,255,0.4)"},
+  {id:"b6",  label:"Coral",       bg:"linear-gradient(135deg,#fed7aa,#d4845a)",           shine:"rgba(255,255,255,0.35)"},
+  {id:"b7",  label:"Galaxy",      bg:"radial-gradient(circle at 35% 35%,#F79F79,#2a2820)",shine:"rgba(255,255,255,0.2)"},
+  {id:"b8",  label:"Rose",        bg:"linear-gradient(135deg,#fbcfe8,#c06050)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b9",  label:"Mint",        bg:"linear-gradient(135deg,#99f6e4,#5b9688)",           shine:"rgba(255,255,255,0.35)"},
+  {id:"b10", label:"Blueberry",   bg:"radial-gradient(circle at 35% 35%,#bfdbfe,#5b7a8f)",shine:"rgba(255,255,255,0.35)"},
+  {id:"b11", label:"Strawberry",  bg:"linear-gradient(135deg,#fca5a5,#c05040)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b12", label:"Gold Dust",   bg:"radial-gradient(circle at 35% 35%,#fef9c3,#92400e)",shine:"rgba(255,255,255,0.5)"},
+  {id:"b13", label:"Aurora",      bg:"linear-gradient(135deg,#6ee7f7,#a855f7,#e06060)",   shine:"rgba(255,255,255,0.3)"},
+  {id:"b14", label:"Peacock",     bg:"linear-gradient(135deg,#87B6A7,#5b8f82)",           shine:"rgba(255,255,255,0.35)"},
+  {id:"b15", label:"Cotton Candy",bg:"linear-gradient(135deg,#f0abfc,#87B6A7)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b16", label:"Ember",       bg:"radial-gradient(circle at 35% 35%,#fde68a,#d05545)",shine:"rgba(255,255,255,0.3)"},
+  {id:"b17", label:"Glacier",     bg:"linear-gradient(135deg,#e0f2fe,#5b8f82)",           shine:"rgba(255,255,255,0.5)"},
+  {id:"b18", label:"Neon",        bg:"linear-gradient(135deg,#a3e635,#a8c050)",           shine:"rgba(255,255,255,0.4)"},
+  {id:"b19", label:"Dusk",        bg:"linear-gradient(135deg,#F7D08A,#9333ea)",           shine:"rgba(255,255,255,0.3)"},
+  {id:"b20", label:"Midnight",    bg:"radial-gradient(circle at 35% 35%,#c7d2fe,#312e81)",shine:"rgba(255,255,255,0.25)"},
+];
+
+const PACKS = {
+  arches_np: {
+    name:"Arches National Park", icon:"🏜️", color:"#e8956a",
+    goal:"Complete 5+ tasks in a day", unlockFn: s => s.done >= 5,
+    stickers:[
+      {id:"anp1", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/01-delicate-arch.png",   label:"Delicate Arch",  rarity:"rare"},
+      {id:"anp2", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/02-window-arch.png",     label:"Window Arch",    rarity:"common"},
+      {id:"anp3", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/03-park-sign.png",       label:"Park Sign",      rarity:"common"},
+      {id:"anp4", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/04-bighorn-ram.png",     label:"Bighorn Ram",    rarity:"rare"},
+      {id:"anp5", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/05-big-arch.png",        label:"Big Arch",       rarity:"common"},
+      {id:"anp6", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/06-small-rock.png",      label:"Rock Dome",      rarity:"common"},
+      {id:"anp7", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/07-snake-rv.png",        label:"Snake & RV",     rarity:"rare"},
+      {id:"anp8", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/08-saguaro-left.png",    label:"Saguaro",        rarity:"common"},
+      {id:"anp9", img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/09-mesa-rocks.png",      label:"Mesa Rocks",     rarity:"common"},
+      {id:"anp10",img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/10-desert-sunset.png",   label:"Desert Sunset",  rarity:"rare"},
+      {id:"anp11",img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/11-saguaro-right.png",   label:"Tall Saguaro",   rarity:"common"},
+      {id:"anp12",img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/12-vw-bus.png",          label:"VW Bus",         rarity:"rare"},
+      {id:"anp13",img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/13-rock-spire.png",      label:"Rock Spire",     rarity:"common"},
+      {id:"anp14",img:"https://raw.githubusercontent.com/YOUR_USERNAME/quest-day/main/images/arches/14-green-trex.png",      label:"Green T-Rex",    rarity:"legendary"},
+    ]
+  },
+  dino: {
+    name:"Dino World", icon:"🦖", color:"#E3F09B",
+    goal:"Complete 8+ tasks in a day", unlockFn: s => s.done >= 8,
+    stickers:[
+      {id:"d1",emoji:"🦖",label:"T-Rex",rarity:"common"},
+      {id:"d2",emoji:"🦕",label:"Bronto",rarity:"common"},
+      {id:"d3",emoji:"🥚",label:"Dino Egg",rarity:"common"},
+      {id:"d4",emoji:"🦴",label:"Fossil",rarity:"common"},
+      {id:"d5",emoji:"🌿",label:"Fern",rarity:"common"},
+      {id:"d6",emoji:"🦷",label:"Rex Tooth",rarity:"rare"},
+      {id:"d7",emoji:"🌋",label:"Volcano",rarity:"rare"},
+      {id:"d8",emoji:"🪨",label:"Meteor",rarity:"rare"},
+      {id:"d9",emoji:"🔬",label:"DNA",rarity:"rare"},
+      {id:"d10",emoji:"🐊",label:"Raptor",rarity:"legendary"},
+    ]
+  },
+  crystals: {
+    name:"Crystal Cave", icon:"💎", color:"#a855f7",
+    goal:"Earn 500+ XP total", unlockFn: s => s.xp >= 500,
+    stickers:[
+      {id:"cr1",emoji:"💜",label:"Amethyst",rarity:"common"},
+      {id:"cr2",emoji:"💙",label:"Sapphire",rarity:"common"},
+      {id:"cr3",emoji:"💚",label:"Emerald",rarity:"common"},
+      {id:"cr4",emoji:"❤️",label:"Ruby",rarity:"common"},
+      {id:"cr5",emoji:"🤍",label:"Diamond",rarity:"common"},
+      {id:"cr6",emoji:"✨",label:"Stardust",rarity:"rare"},
+      {id:"cr7",emoji:"🔮",label:"Crystal Ball",rarity:"rare"},
+      {id:"cr8",emoji:"💫",label:"Shooting Star",rarity:"rare"},
+      {id:"cr9",emoji:"🌟",label:"Nova",rarity:"rare"},
+      {id:"cr10",emoji:"👑",label:"Crown Jewel",rarity:"legendary"},
+    ]
+  },
+  nyc: {
+    name:"NYC Life", icon:"🗽", color:"#F79F79",
+    goal:"Hit Partner Pro (500 XP)", unlockFn: s => s.xp >= 500,
+    stickers:[
+      {id:"nyc1",emoji:"🗽",label:"Liberty",rarity:"common"},
+      {id:"nyc2",emoji:"🌆",label:"Skyline",rarity:"common"},
+      {id:"nyc3",emoji:"🚇",label:"Subway",rarity:"common"},
+      {id:"nyc4",emoji:"🌭",label:"Hot Dog",rarity:"common"},
+      {id:"nyc5",emoji:"🍕",label:"Pizza",rarity:"common"},
+      {id:"nyc6",emoji:"🌉",label:"The Bridge",rarity:"rare"},
+      {id:"nyc7",emoji:"🎭",label:"Broadway",rarity:"rare"},
+      {id:"nyc8",emoji:"🏟️",label:"The Garden",rarity:"rare"},
+      {id:"nyc9",emoji:"🦅",label:"City Eagle",rarity:"rare"},
+      {id:"nyc10",emoji:"🏙️",label:"Manhattan",rarity:"legendary"},
+    ]
+  },
+  seattle: {
+    name:"Seattle Vibes", icon:"⛅", color:"#87B6A7",
+    goal:"Clear 2 full categories", unlockFn: s => s.catsCleared >= 2,
+    stickers:[
+      {id:"se1",emoji:"☕",label:"Pike Place",rarity:"common"},
+      {id:"se2",emoji:"🚀",label:"Space Needle",rarity:"common"},
+      {id:"se3",emoji:"🌲",label:"Rainforest",rarity:"common"},
+      {id:"se4",emoji:"🌧️",label:"Rain Day",rarity:"common"},
+      {id:"se5",emoji:"🐟",label:"Salmon",rarity:"common"},
+      {id:"se6",emoji:"⛵",label:"Puget Sound",rarity:"rare"},
+      {id:"se7",emoji:"🦅",label:"Eagle",rarity:"rare"},
+      {id:"se8",emoji:"🏔️",label:"Mt Rainier",rarity:"rare"},
+      {id:"se9",emoji:"🌈",label:"PNW Rainbow",rarity:"rare"},
+      {id:"se10",emoji:"💚",label:"Emerald City",rarity:"legendary"},
+    ]
+  },
+  denver: {
+    name:"Denver High", icon:"🏔️", color:"#87B6A7",
+    goal:"Earn 800+ XP", unlockFn: s => s.xp >= 800,
+    stickers:[
+      {id:"dv1",emoji:"🏔️",label:"The Rockies",rarity:"common"},
+      {id:"dv2",emoji:"🌨️",label:"First Snow",rarity:"common"},
+      {id:"dv3",emoji:"⛷️",label:"Skier",rarity:"common"},
+      {id:"dv4",emoji:"🍺",label:"Craft Beer",rarity:"common"},
+      {id:"dv5",emoji:"🌅",label:"Mile High",rarity:"common"},
+      {id:"dv6",emoji:"🦌",label:"Deer",rarity:"rare"},
+      {id:"dv7",emoji:"🏕️",label:"Campsite",rarity:"rare"},
+      {id:"dv8",emoji:"🪵",label:"Fireside",rarity:"rare"},
+      {id:"dv9",emoji:"🌄",label:"Sunrise Summit",rarity:"rare"},
+      {id:"dv10",emoji:"🏔️",label:"Longs Peak",rarity:"legendary"},
+    ]
+  },
+  flowers: {
+    name:"Flower Garden", icon:"🌸", color:"#F79F79",
+    goal:"5-day streak", unlockFn: s => s.streak >= 5,
+    stickers:[
+      {id:"fl1",emoji:"🌸",label:"Cherry Blossom",rarity:"common"},
+      {id:"fl2",emoji:"🌻",label:"Sunflower",rarity:"common"},
+      {id:"fl3",emoji:"🌷",label:"Tulip",rarity:"common"},
+      {id:"fl4",emoji:"🌹",label:"Rose",rarity:"common"},
+      {id:"fl5",emoji:"🌼",label:"Daisy",rarity:"common"},
+      {id:"fl6",emoji:"💐",label:"Bouquet",rarity:"rare"},
+      {id:"fl7",emoji:"🌺",label:"Hibiscus",rarity:"rare"},
+      {id:"fl8",emoji:"🪷",label:"Lotus",rarity:"rare"},
+      {id:"fl9",emoji:"🌿",label:"Garden",rarity:"rare"},
+      {id:"fl10",emoji:"🏵️",label:"Rosette",rarity:"legendary"},
+    ]
+  },
+  ocean: {
+    name:"Ocean & Beach", icon:"🌊", color:"#87B6A7",
+    goal:"Complete 10+ tasks", unlockFn: s => s.done >= 10,
+    stickers:[
+      {id:"sea1",emoji:"🌊",label:"Wave",rarity:"common"},
+      {id:"sea2",emoji:"🐚",label:"Shell",rarity:"common"},
+      {id:"sea3",emoji:"🏖️",label:"Beach Day",rarity:"common"},
+      {id:"sea4",emoji:"⛵",label:"Sailboat",rarity:"common"},
+      {id:"sea5",emoji:"🪸",label:"Coral",rarity:"common"},
+      {id:"sea6",emoji:"🐬",label:"Dolphin",rarity:"rare"},
+      {id:"sea7",emoji:"🐙",label:"Octopus",rarity:"rare"},
+      {id:"sea8",emoji:"🦭",label:"Seal",rarity:"rare"},
+      {id:"sea9",emoji:"🐳",label:"Blue Whale",rarity:"rare"},
+      {id:"sea10",emoji:"🦈",label:"Apex",rarity:"legendary"},
+    ]
+  },
+  food: {
+    name:"Foodie Life", icon:"🍜", color:"#F7D08A",
+    goal:"Hit Deal Closer (700 XP)", unlockFn: s => s.xp >= 700,
+    stickers:[
+      {id:"fd1",emoji:"🍜",label:"Ramen",rarity:"common"},
+      {id:"fd2",emoji:"☕",label:"Coffee",rarity:"common"},
+      {id:"fd3",emoji:"🥑",label:"Avocado",rarity:"common"},
+      {id:"fd4",emoji:"🌮",label:"Taco",rarity:"common"},
+      {id:"fd5",emoji:"🍱",label:"Bento",rarity:"common"},
+      {id:"fd6",emoji:"🍣",label:"Sushi",rarity:"rare"},
+      {id:"fd7",emoji:"🍝",label:"Pasta",rarity:"rare"},
+      {id:"fd8",emoji:"🥩",label:"Steakhouse",rarity:"rare"},
+      {id:"fd9",emoji:"🥂",label:"Celebrate",rarity:"rare"},
+      {id:"fd10",emoji:"🎂",label:"Full Send",rarity:"legendary"},
+    ]
+  },
+  streak_pack: {
+    name:"Streak Rewards", icon:"🔥", color:"#F79F79",
+    goal:"Secret — earned through streaks", unlockFn: s => s.streak >= 1,
+    stickers:[
+      {id:"str1",emoji:"🔥",label:"On Fire",rarity:"common",streakReq:1},
+      {id:"str2",emoji:"⚡",label:"Momentum",rarity:"common",streakReq:3},
+      {id:"str3",emoji:"🌀",label:"In the Zone",rarity:"rare",streakReq:5},
+      {id:"str4",emoji:"💫",label:"Unstoppable",rarity:"rare",streakReq:7},
+      {id:"str5",emoji:"🏆",label:"Champion",rarity:"legendary",streakReq:10},
+      {id:"str6",emoji:"🐐",label:"GOAT Status",rarity:"legendary",streakReq:14},
+    ]
+  },
+  cute_animals: {
+    name:"Cute Animals", icon:"🦊", color:"#F79F79",
+    goal:"Complete 10+ tasks", unlockFn: s => s.done >= 10,
+    stickers:[
+      {id:"ca1",emoji:"🦊",label:"Fox",rarity:"common"},
+      {id:"ca2",emoji:"🐨",label:"Koala",rarity:"common"},
+      {id:"ca3",emoji:"🦔",label:"Hedgehog",rarity:"common"},
+      {id:"ca4",emoji:"🐹",label:"Hamster",rarity:"common"},
+      {id:"ca5",emoji:"🐰",label:"Bunny",rarity:"common"},
+      {id:"ca6",emoji:"🦦",label:"Otter",rarity:"rare"},
+      {id:"ca7",emoji:"🐼",label:"Panda",rarity:"rare"},
+      {id:"ca8",emoji:"🦥",label:"Sloth",rarity:"rare"},
+      {id:"ca9",emoji:"🦛",label:"Hippo",rarity:"rare"},
+      {id:"ca10",emoji:"🦄",label:"Unicorn",rarity:"legendary"},
+    ]
+  },
+};
+
+const RARITY_WEIGHTS = {common:60, rare:30, legendary:10};
+const RARITY_STYLE = {
+  common:    {border:"rgba(156,163,175,0.22)", glow:"transparent",           badge:null,           color:"#87B6A7", shimmer:false},
+  rare:      {border:"rgba(96,165,250,0.55)",  glow:"rgba(96,165,250,0.2)",  badge:"✦ RARE",       color:"#93c5fd", shimmer:true},
+  legendary: {border:"rgba(247,159,121,0.8)",   glow:"rgba(247,159,121,0.3)",  badge:"★ LEGENDARY",  color:"#F7D08A", shimmer:true},
+};
+const RANKS = [
+  {min:0,    label:"Rookie",         icon:"🥉"},
+  {min:150,  label:"Rising Rep",     icon:"📈"},
+  {min:300,  label:"Pipeline Builder",icon:"💼"},
+  {min:500,  label:"Partner Pro",    icon:"⭐"},
+  {min:700,  label:"Deal Closer",    icon:"🤝"},
+  {min:900,  label:"Legendary",      icon:"🏆"},
+  {min:1200, label:"GOAT",           icon:"🐐"},
+];
+const CAT_COLORS = ["#e07060","#F7D08A","#eab308","#c8e06a","#87B6A7","#F79F79","#a855f7","#e8836a"];
+const TASK_TOASTS = ["Let's go! ⚡","Crushing it 💪","Check! ✅","Easy money 💰","Boss moves 😎","Pipeline 📈","Built different 💫","Another one 🔥","Closer 🔒","In the zone 🌀"];
+
+const DEFAULT_CATS = [
+  {id:"c1", name:"Must Do", emoji:"🔴", color:"#e07060", tasks:[
+    {id:"t1", text:"Morning review — plan the day", sub:"10 min · coffee first", xp:30},
+    {id:"t2", text:"Top priority task", sub:"Your most important thing today", xp:100},
+    {id:"t3", text:"Clear inbox", sub:"Respond to all urgent messages", xp:50},
+  ]},
+  {id:"c2", name:"Focus Work", emoji:"🎯", color:"#F79F79", tasks:[
+    {id:"t4", text:"Deep work block", sub:"2 hours · no distractions", xp:120},
+    {id:"t5", text:"Weekly review", sub:"What worked? What didn't?", xp:80},
+  ]},
+  {id:"c3", name:"Personal", emoji:"🌱", color:"#c8e06a", tasks:[
+    {id:"t6", text:"Exercise", sub:"30 min minimum", xp:60},
+    {id:"t7", text:"Read", sub:"20 min", xp:40},
+  ]},
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function uid() { return `_${Math.random().toString(36).slice(2,9)}`; }
+function getRank(xp) { return [...RANKS].reverse().find(r => xp >= r.min) || RANKS[0]; }
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function h2r(h) { return `${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)}`; }
+
+function rollDrop(packKey, ownedSet, stats) {
+  const pack = PACKS[packKey];
+  let available = pack.stickers.filter(s => !ownedSet.has(s.id));
+  if (packKey === "streak_pack") available = available.filter(s => stats.streak >= (s.streakReq || 1));
+  if (!available.length) return null;
+  let total = available.reduce((s, st) => s + RARITY_WEIGHTS[st.rarity], 0);
+  let roll = Math.random() * total;
+  for (const s of available) { roll -= RARITY_WEIGHTS[s.rarity]; if (roll <= 0) return {...s, packKey}; }
+  return {...available[available.length-1], packKey};
+}
+
+function pickBlob(ownedBlobSet) {
+  const avail = BLOB_POOL.filter(b => !ownedBlobSet.has(b.id));
+  return avail.length ? avail[Math.floor(Math.random() * avail.length)] : BLOB_POOL[Math.floor(Math.random() * BLOB_POOL.length)];
+}
+
+function pickLargeSticker(seenIds) {
+  const seen = new Set(seenIds || []);
+  const unseen = LARGE_STICKERS.filter(l => !seen.has(l.id));
+  const pool = unseen.length ? unseen : LARGE_STICKERS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// Encode/decode save state
+function encodeState(owned, blobOwned, history, streak, lsHistory) {
+  try {
+    const d = {o:[...owned], b:[...blobOwned], h:history, s:streak, ls:lsHistory};
+    return btoa(encodeURIComponent(JSON.stringify(d)));
+  } catch { return ""; }
+}
+function decodeState(code) {
+  try {
+    const d = JSON.parse(decodeURIComponent(atob(code.trim())));
+    if (!Array.isArray(d.o)) throw 0;
+    return d;
+  } catch { return null; }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem('questday_v3');
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    // Blobs reset daily — they are daily motivation, not permanent collectors
+    if (data.blobDate !== todayKey()) {
+      data.blobOwned = [];
+      data.blobDate = todayKey();
+      data.blobCounter = 0;
+    }
+    return data;
+  } catch { return null; }
+}
+
+function saveToStorage(data) {
+  try { localStorage.setItem('questday_v3', JSON.stringify(data)); } catch {}
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUB-COMPONENTS
+// ═══════════════════════════════════════════════════════════════════
+
+function StickerCard({ sticker, owned, dim }) {
+  const locked = dim || !owned;
+  const r = RARITY_STYLE[sticker.rarity];
+  const hasImg = !!sticker.img;
+  return (
+    <div style={{
+      width: hasImg ? 92 : 76,
+      minHeight: hasImg ? 112 : 92,
+      borderRadius:14, flexShrink:0,
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      gap:4, padding: hasImg ? "8px 6px 8px" : "10px 4px 8px",
+      background: locked ? "#33312a" : "#3d3a30",
+      border: `2px solid ${locked ? "rgba(255,255,255,0.04)" : r.border}`,
+      boxShadow: locked ? "none" : `0 0 20px ${r.glow}`,
+      position:"relative", overflow:"hidden", transition:"all 0.3s",
+    }}>
+      {!locked && r.shimmer && (
+        <div style={{position:"absolute",inset:0,pointerEvents:"none",overflow:"hidden",borderRadius:12}}>
+          <div style={{position:"absolute",top:0,left:"-120%",width:"60%",height:"100%",
+            background:"linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.15) 50%,transparent 70%)",
+            animation:"shimmer 3s ease-in-out infinite"}}/>
+        </div>
+      )}
+      {hasImg ? (
+        <img src={sticker.img} alt={sticker.label}
+          style={{
+            width: locked ? 54 : 68, height: locked ? 54 : 68,
+            objectFit:"contain",
+            filter: locked ? "grayscale(1) opacity(0.1) blur(1px)" : "none",
+            position:"relative", zIndex:1,
+            animation: owned && r.shimmer ? "glow-pulse 3s infinite" : "none",
+            borderRadius:6, transition:"all 0.3s",
+          }}/>
+      ) : (
+        <span style={{fontSize:locked?18:28, filter:locked?"grayscale(1) opacity(0.08)":"none", position:"relative", zIndex:1, animation: owned && r.shimmer ? "glow-pulse 3s infinite" : "none"}}>
+          {sticker.emoji}
+        </span>
+      )}
+      <span style={{fontSize:8, fontFamily:"'Space Mono',monospace", textAlign:"center", textTransform:"uppercase",
+        lineHeight:1.3, padding:"0 3px", position:"relative", zIndex:1,
+        color:locked?"rgba(255,255,255,0.06)":r.color, letterSpacing:"0.04em"}}>
+        {sticker.label}
+      </span>
+      {!locked && r.badge && (
+        <span style={{fontSize:6,fontFamily:"'Space Mono',monospace",color:r.color,opacity:0.85,position:"relative",zIndex:1}}>
+          {r.badge}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function BlobCard({ blob, owned }) {
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,minWidth:70}}>
+      <div style={{
+        width:62, height:62, borderRadius:"50%",
+        background: owned ? blob.bg : "#33312a",
+        border: `2px solid ${owned ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.04)"}`,
+        boxShadow: owned ? "0 0 16px rgba(247,159,121,0.2)" : "none",
+        position:"relative", overflow:"hidden", transition:"all 0.3s",
+        filter: owned ? "none" : "grayscale(1) opacity(0.1)",
+      }}>
+        {owned && <div style={{position:"absolute",top:"20%",left:"20%",width:"30%",height:"30%",borderRadius:"50%",background:blob.shine}}/>}
+      </div>
+      <span style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:owned?"#87B6A7":"#4a4638",textTransform:"uppercase",letterSpacing:"0.04em"}}>{blob.label}</span>
+    </div>
+  );
+}
+
+// The big blurred preview at top of Today
+function DailyPrizeTeaser({ sticker, unlocked }) {
+  if (!sticker) return null;
+  return (
+    <div style={{textAlign:"center", marginBottom:28, padding:"24px 20px", background:"#33312a", borderRadius:20, border:`1px solid ${unlocked ? sticker.color+"44" : "rgba(255,255,255,0.05)"}`, boxShadow: unlocked ? `0 0 40px ${sticker.glow}` : "none", transition:"all 0.8s ease"}}>
+      <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",letterSpacing:"0.14em",color: unlocked ? sticker.color : "#7a7a5a",textTransform:"uppercase",marginBottom:14}}>
+        {unlocked ? "🏆 Today's Prize — UNLOCKED!" : "✨ Today's Prize — Max XP to Unlock"}
+      </div>
+      <div style={{
+        width:110, height:110, margin:"0 auto",
+        borderRadius:22, display:"flex", alignItems:"center", justifyContent:"center",
+        position:"relative",
+        filter: unlocked ? "none" : "blur(6px) grayscale(0.6)",
+        background: unlocked ? `radial-gradient(circle, ${sticker.glow}, rgba(0,0,0,0))` : "#33312a",
+        border: `2px solid ${unlocked ? sticker.color : "rgba(255,255,255,0.04)"}`,
+        boxShadow: unlocked ? `0 0 50px ${sticker.glow}, 0 0 100px ${sticker.glow}` : "none",
+        transition:"all 0.8s ease",
+        animation: unlocked ? "prizeReveal 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards" : "none",
+      }}>
+        <span style={{fontSize:unlocked?58:50, animation: unlocked ? "float 2.5s ease-in-out infinite" : "none"}}>{sticker.emoji}</span>
+        {unlocked && [...Array(8)].map((_,i) => (
+          <div key={i} style={{position:"absolute", width:5, height:5, borderRadius:"50%", background:sticker.color,
+            top:`${15+Math.random()*70}%`, left:`${10+Math.random()*80}%`,
+            animation:`sparkle ${0.8+Math.random()*1.2}s ease-in-out ${Math.random()*0.5}s infinite`, opacity:0.9}}/>
+        ))}
+      </div>
+      {unlocked ? (
+        <div style={{marginTop:12,fontSize:13,fontWeight:700,color:sticker.color}}>{sticker.name}</div>
+      ) : (
+        <div style={{marginTop:8,fontSize:10,color:"#6b6b50",fontFamily:"'Space Mono',monospace"}}>??? · Complete all tasks to reveal</div>
+      )}
+    </div>
+  );
+}
+
+// Drop modal (sticker/blob/large earned)
+function DropModal({ drop, onClose }) {
+  if (!drop) return null;
+  const isBlob = drop.type === "blob";
+  const isLarge = drop.type === "large";
+  const r = (!isBlob && !isLarge) ? RARITY_STYLE[drop.rarity] : null;
+  const borderColor = isLarge ? drop.color : isBlob ? "rgba(255,255,255,0.12)" : r.border;
+  const shadowColor = isLarge ? drop.glow : isBlob ? "none" : `0 0 60px ${r.glow}`;
+
+  return (
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#33312a", border:`2px solid ${borderColor}`,
+        borderRadius:24, padding:"40px 52px", textAlign:"center",
+        boxShadow: shadowColor,
+        animation:"modalPop 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+        maxWidth:320, width:"100%",
+      }}>
+        {isLarge && <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:drop.color,letterSpacing:"0.15em",textTransform:"uppercase",marginBottom:14}}>★ DAILY PRIZE ★</div>}
+        {isBlob && <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>Daily Drop 🫧</div>}
+        {!isLarge && !isBlob && <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:r.color,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:14}}>{PACKS[drop.packKey]?.name} · {r.badge || "New!"}</div>}
+
+        <div style={{
+          margin:"0 auto 14px",
+          animation:"float 2s ease-in-out infinite",
+          width: isLarge?100:isBlob?72:70, height:isLarge?100:isBlob?72:70,
+          borderRadius:isBlob?"50%":"18px",
+          background: isBlob ? drop.bg : isLarge ? `radial-gradient(circle,${drop.glow},rgba(0,0,0,0))` : "transparent",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          boxShadow: isLarge ? `0 0 40px ${drop.glow}` : "none",
+          position:"relative", overflow: isBlob ? "hidden" : "visible",
+        }}>
+          {isBlob
+            ? <><div style={{position:"absolute",top:"18%",left:"18%",width:"28%",height:"28%",borderRadius:"50%",background:drop.shine}}/></>
+            : (drop.img
+              ? <img src={drop.img} alt={drop.label} style={{width:isLarge?80:60,height:isLarge?80:60,objectFit:"contain",borderRadius:8}}/>
+              : <span style={{fontSize:isLarge?60:44}}>{drop.emoji}</span>
+            )
+          }
+        </div>
+
+        <div style={{fontSize:20,fontWeight:800,color:"#f5f0e8",marginBottom:5}}>{drop.label || drop.name}</div>
+        {!isLarge && !isBlob && r.badge && <div style={{fontSize:11,color:r.color,fontFamily:"'Space Mono',monospace",marginBottom:14}}>{r.badge}</div>}
+        <button onClick={onClose} style={{
+          background:"transparent", border:`1px solid ${isLarge?drop.color:isBlob?"rgba(255,255,255,0.12)":r.border}`,
+          borderRadius:12, color:isLarge?drop.color:isBlob?"#87B6A7":r.color,
+          padding:"10px 32px", fontSize:13, cursor:"pointer",
+          fontFamily:"'Space Mono',monospace", marginTop:12,
+        }}>
+          {isLarge ? "collect! 🌟" : "nice! →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Save/Restore modal
+function SaveModal({ owned, blobOwned, history, streak, lsHistory, onClose, onRestore }) {
+  const saveCode = encodeState(owned, blobOwned, history, streak, lsHistory);
+  const [inputCode, setInputCode] = useState("");
+  const [status, setStatus] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const allStickers = Object.values(PACKS).flatMap(p => p.stickers);
+
+  function doCopy() {
+    navigator.clipboard?.writeText(saveCode).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+  }
+  function doRestore() {
+    const d = decodeState(inputCode);
+    if (!d) { setStatus("err"); return; }
+    onRestore(d); setStatus("ok"); setTimeout(onClose, 1400);
+  }
+
+  return (
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#33312a",border:"1px solid #44403a",borderRadius:22,padding:28,maxWidth:500,width:"100%",animation:"modalPop 0.4s ease"}}>
+        <div style={{fontSize:18,fontWeight:800,color:"#f5f0e8",marginBottom:5}}>💾 Save Progress</div>
+        <div style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginBottom:18}}>Copy this code. Paste it next session to restore everything.</div>
+
+        <div style={{display:"flex",gap:10,marginBottom:18}}>
+          {[
+            {i:"🔥",v:streak,l:"streak"},
+            {i:"✨",v:`${allStickers.filter(s=>owned.has(s.id)).length}/${allStickers.length}`,l:"stickers"},
+            {i:"🫧",v:blobOwned.size,l:"blobs today"},
+            {i:"⚡",v:history.reduce((s,d)=>s+d.xp,0),l:"total xp"},
+          ].map(s => (
+            <div key={s.l} style={{flex:1,background:"#33312a",borderRadius:12,padding:"12px 8px",textAlign:"center",border:"1px solid #4a4638"}}>
+              <div style={{fontSize:16}}>{s.i}</div>
+              <div style={{fontSize:14,fontWeight:800,color:"#F79F79"}}>{s.v}</div>
+              <div style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase"}}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7}}>Save Code</div>
+        <div style={{display:"flex",gap:8,marginBottom:18}}>
+          <textarea readOnly value={saveCode} style={{flex:1,height:72,background:"#33312a",border:"1px solid #4a4638",borderRadius:10,color:"#E3F09B",fontFamily:"'Space Mono',monospace",fontSize:10,padding:10,resize:"none",outline:"none",lineHeight:1.5,wordBreak:"break-all"}}/>
+          <button onClick={doCopy} style={{width:86,background:copied?"rgba(74,222,128,0.1)":"rgba(247,159,121,0.08)",border:`1px solid ${copied?"rgba(74,222,128,0.4)":"rgba(247,159,121,0.25)"}`,borderRadius:10,color:copied?"#E3F09B":"#F79F79",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace",flexShrink:0,transition:"all 0.2s"}}>
+            {copied?"✓ copied":"📋 copy"}
+          </button>
+        </div>
+
+        <div style={{borderTop:"1px solid #4a4638",marginBottom:16}}/>
+        <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:7}}>Restore</div>
+        <div style={{display:"flex",gap:8,marginBottom:8}}>
+          <textarea value={inputCode} onChange={e=>{setInputCode(e.target.value);setStatus(null);}} placeholder="Paste save code here..."
+            style={{flex:1,height:60,background:"#33312a",border:`1px solid ${status==="err"?"rgba(239,68,68,0.5)":status==="ok"?"rgba(74,222,128,0.4)":"#4a4638"}`,borderRadius:10,color:"#f5f0e8",fontFamily:"'Space Mono',monospace",fontSize:10,padding:10,resize:"none",outline:"none",lineHeight:1.5,wordBreak:"break-all"}}/>
+          <button onClick={doRestore} disabled={!inputCode.trim()} style={{width:86,background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.25)",borderRadius:10,color:"#87B6A7",fontSize:11,cursor:inputCode.trim()?"pointer":"default",fontFamily:"'Space Mono',monospace",flexShrink:0,opacity:inputCode.trim()?1:0.4}}>restore</button>
+        </div>
+        {status==="ok" && <div style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#E3F09B",marginBottom:4}}>✓ Restored successfully!</div>}
+        {status==="err" && <div style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#F79F79",marginBottom:4}}>✗ Invalid code — try again</div>}
+
+        <button onClick={onClose} style={{width:"100%",background:"none",border:"1px solid #4a4638",borderRadius:10,color:"#87B6A7",padding:11,fontSize:12,cursor:"pointer",fontFamily:"inherit",marginTop:10}}>close</button>
+      </div>
+    </div>
+  );
+}
+
+// Task row
+function TaskRow({ task, isDone, onToggle, catColor }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onClick={() => onToggle(task.id)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display:"flex", alignItems:"flex-start", gap:14, padding:"13px 16px",
+        borderRadius:12, marginBottom:8,
+        border:`1px solid ${isDone?"rgba(227,240,155,0.25)":hov?"rgba(255,255,255,0.09)":"#4a4638"}`,
+        background: isDone?"rgba(227,240,155,0.06)":hov?"#33312a":"#33312a",
+        cursor:"pointer", transition:"all 0.15s", opacity:isDone?0.55:1,
+        borderLeft:`3px solid ${catColor}`,
+        animation:"slideUp 0.2s ease",
+      }}>
+      <div style={{width:20,height:20,borderRadius:6,flexShrink:0,marginTop:2,border:isDone?"2px solid #E3F09B":"2px solid #4a4638",background:isDone?"#E3F09B":"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>
+        {isDone && <span style={{color:"#3a3820",fontSize:11,fontWeight:800}}>✓</span>}
+      </div>
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:14,fontWeight:600,color:isDone?"#87B6A7":"#f5f0e8",textDecoration:isDone?"line-through":"none",lineHeight:1.4}}>{task.text}</div>
+        {task.sub && <div style={{fontSize:11,color:"#87B6A7",fontFamily:"'Space Mono',monospace",marginTop:3,lineHeight:1.4}}>{task.sub}</div>}
+      </div>
+      <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",padding:"3px 9px",borderRadius:100,border:isDone?"1px solid #E3F09B":"1px solid #4a4638",color:isDone?"#E3F09B":"#87B6A7",background:isDone?"rgba(227,240,155,0.08)":"transparent",whiteSpace:"nowrap",flexShrink:0,alignSelf:"flex-start",marginTop:1}}>+{task.xp} XP</div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE: TODAY
+// ═══════════════════════════════════════════════════════════════════
+function TodayPage({ cats, done, onToggle, xp, maxXp, onStartFresh, dailySticker, maxedToday }) {
+  const rank = getRank(xp);
+  const pct = Math.min((xp / Math.max(maxXp, 1)) * 100, 100);
+  const totalTasks = cats.flatMap(c => c.tasks).length;
+  const completedTasks = done.size;
+
+  return (
+    <div>
+      <DailyPrizeTeaser sticker={dailySticker} unlocked={maxedToday} />
+
+      {/* XP Bar */}
+      <div style={{background:"#33312a",border:"1px solid #4a4638",borderRadius:18,padding:"18px 22px",marginBottom:22}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
+          <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,letterSpacing:"0.12em",color:"#87B6A7",textTransform:"uppercase"}}>⚡ Daily XP</span>
+          <span style={{fontFamily:"'Space Mono',monospace",fontSize:12,color:"#F79F79",fontWeight:700}}>{xp} / {maxXp} XP</span>
+        </div>
+        <div style={{background:"#3d3a30",borderRadius:100,height:10,overflow:"hidden"}}>
+          <div style={{height:"100%",borderRadius:100,width:`${pct}%`,background:"linear-gradient(90deg,#e8956a,#F79F79,#fff3e0)",boxShadow:"0 0 12px rgba(247,159,121,0.5)",transition:"width 0.7s cubic-bezier(0.34,1.56,0.64,1)",animation:xp>0?"xpPulse 2s infinite":"none"}}/>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:10,alignItems:"center"}}>
+          <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:"#87B6A7"}}>
+            Rank: <span style={{color:"#F79F79",fontWeight:700}}>{rank.icon} {rank.label}</span>
+          </span>
+          <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:"#87B6A7"}}>{completedTasks}/{totalTasks} tasks</span>
+        </div>
+      </div>
+
+      {/* All done banner */}
+      {maxedToday && (
+        <div style={{border:"1px solid #F79F79",borderRadius:16,padding:"20px 22px",textAlign:"center",marginBottom:24,background:"linear-gradient(135deg,rgba(247,159,121,0.07),rgba(247,208,138,0.07))"}}>
+          <div style={{fontSize:20,fontWeight:800,marginBottom:5,background:"linear-gradient(135deg,#F79F79,#F7D08A)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>🏆 LEGENDARY DAY!</div>
+          <div style={{fontFamily:"'Space Mono',monospace",fontSize:11,color:"#87B6A7",marginBottom:14}}>Max XP achieved. Big sticker unlocked.</div>
+          <button onClick={onStartFresh} style={{background:"rgba(247,159,121,0.1)",border:"1px solid rgba(247,159,121,0.3)",borderRadius:10,color:"#F79F79",padding:"9px 20px",fontSize:12,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>→ New Day</button>
+        </div>
+      )}
+
+      {cats.length === 0 && (
+        <div style={{textAlign:"center",padding:"50px 20px",color:"#6b6b50",fontFamily:"'Space Mono',monospace",fontSize:13}}>Head to Edit to build today's quests ✏️</div>
+      )}
+
+      {cats.map(cat => {
+        const catDone = cat.tasks.filter(t => done.has(t.id)).length;
+        const rgb = h2r(cat.color);
+        return (
+          <div key={cat.id} style={{marginBottom:30}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,paddingBottom:10,borderBottom:`1px solid rgba(${rgb},0.18)`}}>
+              <span style={{fontSize:17}}>{cat.emoji}</span>
+              <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",letterSpacing:"0.12em",textTransform:"uppercase",color:cat.color}}>{cat.name}</span>
+              <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(${rgb},0.15),transparent)`}}/>
+              <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:catDone===cat.tasks.length&&cat.tasks.length>0?"#E3F09B":"#87B6A7"}}>{catDone}/{cat.tasks.length}{catDone===cat.tasks.length&&cat.tasks.length>0?" ✓":""}</span>
+            </div>
+            {cat.tasks.map(t => <TaskRow key={t.id} task={t} isDone={done.has(t.id)} onToggle={onToggle} catColor={cat.color} />)}
+          </div>
+        );
+      })}
+
+      {cats.length > 0 && (
+        <div style={{textAlign:"center",marginTop:20,paddingTop:20,borderTop:"1px solid #3d3a30"}}>
+          <button onClick={onStartFresh} style={{background:"none",border:"1px solid #44403a",borderRadius:10,color:"#87B6A7",padding:"9px 20px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>🔄 Start Fresh / New Day</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE: STICKERS
+// ═══════════════════════════════════════════════════════════════════
+function StickersPage({ owned, blobOwned, stats, onSave, earnedLS }) {
+  const [view, setView] = useState("packs");
+  const allStickers = Object.values(PACKS).flatMap(p => p.stickers);
+  const totalOwned = allStickers.filter(s => owned.has(s.id)).length;
+  const totalBlobs = blobOwned.size; // daily count
+  const totalLarge = earnedLS.length;
+
+  const tabs = [
+    {id:"packs", label:`Packs · ${totalOwned}/${allStickers.length}`},
+    {id:"blobs", label:`Blobs Today · ${totalBlobs}/20`},
+    {id:"daily", label:`Daily · ${totalLarge}/${LARGE_STICKERS.length}`},
+  ];
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <h2 style={{fontSize:22,fontWeight:800,color:"#f5f0e8"}}>✨ Sticker Collection</h2>
+        <button onClick={onSave} style={{background:"rgba(247,159,121,0.08)",border:"1px solid rgba(247,159,121,0.25)",borderRadius:10,color:"#F79F79",padding:"7px 14px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>💾 save</button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:8,marginBottom:24}}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setView(t.id)} style={{flex:1,background:view===t.id?"rgba(247,159,121,0.08)":"none",border:view===t.id?"1px solid rgba(247,159,121,0.22)":"1px solid #4a4638",borderRadius:10,color:view===t.id?"#F79F79":"#87B6A7",padding:"9px 8px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace",transition:"all 0.2s"}}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* Packs view */}
+      {view === "packs" && Object.entries(PACKS).map(([key, pack]) => {
+        const isUnlocked = pack.unlockFn(stats);
+        const rgb = h2r(pack.color);
+        const packOwned = pack.stickers.filter(s => owned.has(s.id)).length;
+        const isStreak = key === "streak_pack";
+
+        return (
+          <div key={key} style={{marginBottom:18,borderRadius:18,border:`1px solid ${isUnlocked?`rgba(${rgb},0.22)`:"rgba(255,255,255,0.04)"}`,background:isUnlocked?`rgba(${rgb},0.03)`:"#33312a",overflow:"hidden"}}>
+            {/* Pack header */}
+            <div style={{padding:"16px 20px 14px",borderBottom:isUnlocked?`1px solid rgba(${rgb},0.12)`:"1px solid rgba(255,255,255,0.03)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+                <span style={{fontSize:18}}>{pack.icon}</span>
+                <span style={{fontSize:14,fontWeight:700,color:isUnlocked?pack.color:"#6b6b50"}}>{pack.name}</span>
+                {isStreak && <span style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:"#F79F79",background:"rgba(247,159,121,0.1)",borderRadius:6,padding:"2px 7px"}}>streak</span>}
+                <div style={{flex:1}}/>
+                {isUnlocked
+                  ? <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:pack.color}}>{packOwned}/{pack.stickers.length}</span>
+                  : <span style={{fontSize:14,opacity:0.4}}>🔒</span>
+                }
+              </div>
+              <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:isUnlocked?`rgba(${rgb},0.5)`:"#6b6b50"}}>
+                {isUnlocked ? "Drops randomly as you complete tasks." : (isStreak ? `🔥 ${pack.goal}` : `🔒 ${pack.goal}`)}
+              </div>
+            </div>
+            {/* Stickers grid */}
+            <div style={{padding:"16px 18px 18px",display:"flex",flexWrap:"wrap",gap:10}}>
+              {pack.stickers.map(s => {
+                const dimStreak = isStreak && !owned.has(s.id) && stats.streak < (s.streakReq || 1);
+                return <StickerCard key={s.id} sticker={s} owned={owned.has(s.id)} dim={!isUnlocked || dimStreak} />;
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Blobs view */}
+      {view === "blobs" && (
+        <div>
+          <div style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginBottom:22}}>Daily motivation — earns every 3 tasks. Resets each morning. Stickers &amp; daily prizes are permanent collectors. 🫧</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:22,paddingBottom:20}}>
+            {BLOB_POOL.map(b => <BlobCard key={b.id} blob={b} owned={blobOwned.has(b.id)} />)}
+          </div>
+        </div>
+      )}
+
+      {/* Daily large stickers */}
+      {view === "daily" && (
+        <div>
+          <div style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginBottom:22}}>One glittery prize per day when you max XP. {LARGE_STICKERS.length} total — never repeats till you've seen them all.</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:14}}>
+            {LARGE_STICKERS.map(ls => {
+              const isEarned = earnedLS.includes(ls.id);
+              return (
+                <div key={ls.id} style={{
+                  width:100, height:100, borderRadius:18, display:"flex", flexDirection:"column",
+                  alignItems:"center", justifyContent:"center", gap:5,
+                  background: isEarned ? `radial-gradient(circle,${ls.glow},rgba(0,0,0,0))` : "#33312a",
+                  border:`2px solid ${isEarned?ls.color:"rgba(255,255,255,0.04)"}`,
+                  boxShadow: isEarned ? `0 0 20px ${ls.glow}` : "none",
+                  filter: isEarned ? "none" : "grayscale(1) opacity(0.08)",
+                  transition:"all 0.3s",
+                }}>
+                  <span style={{fontSize:34, filter:isEarned?"none":"opacity(0.2)", animation:isEarned?"glow-pulse 3s infinite":"none"}}>{ls.emoji}</span>
+                  {isEarned && <span style={{fontSize:7,fontFamily:"'Space Mono',monospace",color:ls.color,textTransform:"uppercase",letterSpacing:"0.04em",textAlign:"center",padding:"0 5px"}}>{ls.name}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE: HISTORY
+// ═══════════════════════════════════════════════════════════════════
+function HistoryPage({ history, streak }) {
+  if (!history.length) return (
+    <div style={{textAlign:"center",padding:"70px 20px",color:"#6b6b50",fontFamily:"'Space Mono',monospace",fontSize:13}}>No history yet. Complete your first day! 🗓️</div>
+  );
+  const totalXP = history.reduce((s,d) => s+d.xp, 0);
+  const totalTasks = history.reduce((s,d) => s+d.tasksCompleted, 0);
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <h2 style={{fontSize:22,fontWeight:800,color:"#f5f0e8"}}>📅 History</h2>
+        <div style={{background:"rgba(247,159,121,0.08)",border:"1px solid rgba(247,159,121,0.22)",borderRadius:10,padding:"6px 14px"}}>
+          <span style={{fontFamily:"'Space Mono',monospace",fontSize:12,color:"#F79F79"}}>🔥 {streak} streak</span>
+        </div>
+      </div>
+
+      <div style={{display:"flex",gap:12,marginBottom:22}}>
+        {[{l:"Total XP",v:totalXP,c:"#F79F79"},{l:"Days",v:history.length,c:"#F7D08A"},{l:"Tasks Done",v:totalTasks,c:"#E3F09B"}].map(s => (
+          <div key={s.l} style={{flex:1,background:"#33312a",border:"1px solid #4a4638",borderRadius:14,padding:"14px 10px",textAlign:"center"}}>
+            <div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+            <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",marginTop:3}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {[...history].reverse().map((day, i) => {
+        const rank = getRank(day.xp);
+        const dateStr = new Date(day.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+        return (
+          <div key={day.date} style={{marginBottom:12,borderRadius:16,border:i===0?"1px solid rgba(247,159,121,0.18)":"1px solid #4a4638",background:i===0?"rgba(247,159,121,0.02)":"#33312a",padding:"16px 18px",animation:"slideUp 0.3s ease"}}>
+            <div style={{display:"flex",alignItems:"flex-start",marginBottom:10}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:700,color:"#f5f0e8"}}>{dateStr}</div>
+                {i===0 && <div style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:"#F79F79",marginTop:2}}>MOST RECENT</div>}
+              </div>
+              <div style={{marginLeft:"auto",textAlign:"right"}}>
+                <div style={{fontSize:18,fontWeight:800,color:"#F79F79"}}>{day.xp} XP</div>
+                <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginTop:2}}>{day.tasksCompleted} tasks · {rank.icon} {rank.label}</div>
+              </div>
+            </div>
+            {day.stickersEarned?.length > 0 && (
+              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>
+                {day.stickersEarned.map((s,j) => (
+                  <div key={j} style={{display:"flex",alignItems:"center",gap:5,background:"#3d3a30",borderRadius:8,padding:"4px 10px",border:`1px solid ${RARITY_STYLE[s.rarity]?.border||"#4a4638"}`}}>
+                    <span style={{fontSize:12}}>{s.emoji}</span>
+                    <span style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:RARITY_STYLE[s.rarity]?.color||"#87B6A7"}}>{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{background:"#3d3a30",borderRadius:100,height:4,overflow:"hidden"}}>
+              <div style={{height:"100%",borderRadius:100,width:`${Math.min((day.xp/1200)*100,100)}%`,background:"linear-gradient(90deg,#F79F79,#F7D08A)"}}/>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE: EDIT
+// ═══════════════════════════════════════════════════════════════════
+function EditPage({ cats, onChange, templates, onSaveTpl, onLoadTpl, onDeleteTpl }) {
+  const [showTpl, setShowTpl] = useState(false);
+  const [tplName, setTplName] = useState("");
+
+  const I = (extra={}) => ({background:"#33312a",border:"1px solid #4a4638",borderRadius:8,color:"#f5f0e8",fontFamily:"inherit",outline:"none",padding:"7px 10px",fontSize:13,...extra});
+  const set = fn => onChange(fn(cats));
+  const setCat = (id,field,val) => set(cs => cs.map(c => c.id===id ? {...c,[field]:val} : c));
+  const setTask = (catId,taskId,field,val) => set(cs => cs.map(c => c.id===catId ? {...c,tasks:c.tasks.map(t => t.id===taskId ? {...t,[field]:val} : t)} : c));
+  const addTask = catId => set(cs => cs.map(c => c.id===catId ? {...c,tasks:[...c.tasks,{id:uid(),text:"New task",sub:"",xp:50}]} : c));
+  const removeTask = (catId,taskId) => set(cs => cs.map(c => c.id===catId ? {...c,tasks:c.tasks.filter(t=>t.id!==taskId)} : c));
+  const addCat = () => { const col=CAT_COLORS[Math.floor(Math.random()*CAT_COLORS.length)]; set(cs=>[...cs,{id:uid(),name:"New Category",emoji:"⭐",color:col,tasks:[]}]); };
+  const removeCat = id => set(cs => cs.filter(c=>c.id!==id));
+  const moveCat = (id,dir) => set(cs => { const i=cs.findIndex(c=>c.id===id),j=i+dir; if(j<0||j>=cs.length)return cs; const n=[...cs];[n[i],n[j]]=[n[j],n[i]];return n; });
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <h2 style={{fontSize:22,fontWeight:800,color:"#f5f0e8"}}>✏️ Build Your Day</h2>
+        <button onClick={()=>setShowTpl(!showTpl)} style={{background:showTpl?"rgba(96,165,250,0.1)":"#33312a",border:`1px solid ${showTpl?"rgba(96,165,250,0.3)":"#4a4638"}`,borderRadius:10,color:showTpl?"#87B6A7":"#87B6A7",padding:"7px 14px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>
+          📁 templates{templates.length>0?` (${templates.length})`:""}
+        </button>
+      </div>
+
+      {showTpl && (
+        <div style={{marginBottom:20,background:"#33312a",border:"1px solid rgba(96,165,250,0.18)",borderRadius:16,padding:"16px 18px"}}>
+          <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Templates</div>
+          {!templates.length && <div style={{fontSize:11,color:"#6b6b50",fontFamily:"'Space Mono',monospace",marginBottom:12}}>No templates yet.</div>}
+          <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>
+            {templates.map(tpl => (
+              <div key={tpl.id} style={{display:"flex",alignItems:"center",gap:10,background:"#33312a",borderRadius:10,padding:"10px 14px"}}>
+                <span style={{flex:1,fontSize:13,fontWeight:600,color:"#f5f0e8"}}>{tpl.name}</span>
+                <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7"}}>{tpl.cats.reduce((s,c)=>s+c.tasks.length,0)} tasks</span>
+                <button onClick={()=>{onLoadTpl(tpl);setShowTpl(false);}} style={{background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.22)",borderRadius:8,color:"#87B6A7",padding:"5px 12px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>load</button>
+                <button onClick={()=>onDeleteTpl(tpl.id)} style={{background:"none",border:"none",color:"#6b6b50",fontSize:18,cursor:"pointer",padding:"0 3px"}}>×</button>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <input value={tplName} onChange={e=>setTplName(e.target.value)} placeholder="Template name..." style={{...I(),flex:1}} onKeyDown={e=>{if(e.key==="Enter"&&tplName.trim()){onSaveTpl(tplName.trim());setTplName("");}}}/>
+            <button onClick={()=>{if(tplName.trim()){onSaveTpl(tplName.trim());setTplName("");}}} style={{background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.22)",borderRadius:9,color:"#87B6A7",padding:"7px 16px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>save</button>
+          </div>
+        </div>
+      )}
+
+      {cats.map((cat, ci) => {
+        const rgb = h2r(cat.color);
+        return (
+          <div key={cat.id} style={{marginBottom:16,borderRadius:16,border:`1px solid rgba(${rgb},0.2)`,background:`rgba(${rgb},0.02)`,overflow:"hidden"}}>
+            {/* Category header */}
+            <div style={{padding:"13px 16px 11px",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                <input value={cat.emoji} onChange={e=>setCat(cat.id,"emoji",e.target.value)} style={{...I(),width:42,textAlign:"center",fontSize:17,padding:"4px 2px"}}/>
+                <input value={cat.name} onChange={e=>setCat(cat.id,"name",e.target.value)} style={{...I(),flex:1,minWidth:100,fontWeight:700,color:cat.color}}/>
+                <input type="color" value={cat.color} onChange={e=>setCat(cat.id,"color",e.target.value)} style={{width:28,height:26,border:"none",borderRadius:6,cursor:"pointer",background:"none",padding:0}}/>
+                <button onClick={()=>moveCat(cat.id,-1)} disabled={ci===0} style={{background:"#33312a",border:"1px solid #4a4638",borderRadius:6,color:ci===0?"#4a4638":"#87B6A7",padding:"2px 8px",cursor:ci===0?"default":"pointer",fontSize:12}}>↑</button>
+                <button onClick={()=>moveCat(cat.id,1)} disabled={ci===cats.length-1} style={{background:"#33312a",border:"1px solid #4a4638",borderRadius:6,color:ci===cats.length-1?"#4a4638":"#87B6A7",padding:"2px 8px",cursor:ci===cats.length-1?"default":"pointer",fontSize:12}}>↓</button>
+                <button onClick={()=>removeCat(cat.id)} style={{background:"rgba(239,68,68,0.07)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:6,color:"#F79F79",padding:"2px 9px",cursor:"pointer",fontSize:11,fontFamily:"'Space Mono',monospace"}}>✕</button>
+              </div>
+            </div>
+            {/* Tasks */}
+            <div style={{padding:"10px 14px 8px"}}>
+              {cat.tasks.map((task, ti) => (
+                <div key={task.id} style={{display:"flex",gap:8,alignItems:"flex-start",marginBottom:7,padding:"9px 12px",background:"#33312a",borderRadius:10,borderLeft:`2px solid ${cat.color}`}}>
+                  <span style={{fontSize:9,color:"#6b6b50",fontFamily:"'Space Mono',monospace",paddingTop:4,flexShrink:0,width:16}}>{ti+1}.</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <input value={task.text} onChange={e=>setTask(cat.id,task.id,"text",e.target.value)} style={{width:"100%",background:"transparent",border:"none",borderBottom:"1px solid #4a4638",color:"#f5f0e8",fontSize:13,fontWeight:600,padding:"2px 0 5px",marginBottom:4,fontFamily:"inherit",outline:"none"}}/>
+                    <input value={task.sub} onChange={e=>setTask(cat.id,task.id,"sub",e.target.value)} placeholder="note (optional)" style={{width:"100%",background:"transparent",border:"none",color:"#87B6A7",fontSize:11,padding:"2px 0",fontFamily:"'Space Mono',monospace",outline:"none"}}/>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                    <input type="number" value={task.xp} min={1} max={999} onChange={e=>setTask(cat.id,task.id,"xp",Math.max(1,parseInt(e.target.value)||1))} style={{width:46,background:"#33312a",border:"1px solid #4a4638",borderRadius:6,color:"#F79F79",fontSize:11,fontFamily:"'Space Mono',monospace",textAlign:"center",padding:"4px 2px",outline:"none"}}/>
+                    <span style={{fontSize:7,color:"#87B6A7",fontFamily:"'Space Mono',monospace"}}>XP</span>
+                    <button onClick={()=>removeTask(cat.id,task.id)} style={{background:"none",border:"none",color:"#6b6b50",fontSize:18,cursor:"pointer",padding:"0 2px",lineHeight:1}}>×</button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={()=>addTask(cat.id)} style={{width:"100%",background:"none",border:`1px dashed rgba(${rgb},0.2)`,borderRadius:8,color:cat.color,fontSize:11,padding:"8px",cursor:"pointer",fontFamily:"'Space Mono',monospace",opacity:0.7,marginBottom:4}}>+ add task</button>
+            </div>
+          </div>
+        );
+      })}
+
+      <button onClick={addCat} style={{width:"100%",background:"none",border:"1px dashed #44403a",borderRadius:14,color:"#87B6A7",fontSize:13,padding:"14px",cursor:"pointer",fontFamily:"'Space Mono',monospace",marginBottom:20}}>+ add category</button>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS — PLANNING
+// ═══════════════════════════════════════════════════════════════════
+function getDateKey(offsetDays) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toISOString().slice(0,10);
+}
+function formatDateKey(key) {
+  return new Date(key + "T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+}
+function getWeekDays() {
+  // Returns next 14 days as [{key, label, isToday, dayName}]
+  const days = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    days.push({
+      key,
+      dayName: d.toLocaleDateString("en-US",{weekday:"short"}),
+      dayNum:  d.getDate(),
+      month:   d.toLocaleDateString("en-US",{month:"short"}),
+      isToday: i === 0,
+    });
+  }
+  return days;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GOOD MORNING MODAL — shown when planned tasks exist for today
+// ═══════════════════════════════════════════════════════════════════
+function GoodMorningModal({ plannedTasks, onConfirm, onDismiss }) {
+  const [tasks, setTasks] = useState(plannedTasks.map(t => ({...t, selected: true})));
+  const selected = tasks.filter(t => t.selected);
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:800,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#33312a", border:"2px solid rgba(247,159,121,0.35)",
+        borderRadius:24, padding:"32px 36px", maxWidth:520, width:"100%",
+        boxShadow:"0 0 60px rgba(247,159,121,0.15)",
+        animation:"modalPop 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+      }}>
+        <div style={{fontSize:28,marginBottom:8}}>🌅</div>
+        <div style={{fontSize:20,fontWeight:800,color:"#f5f0e8",marginBottom:4}}>Good morning!</div>
+        <div style={{fontSize:12,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginBottom:22}}>
+          You planned {tasks.length} quest{tasks.length!==1?"s":""} for today. Load them in?
+        </div>
+
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:22,maxHeight:280,overflowY:"auto"}}>
+          {tasks.map((task,i) => (
+            <div key={task.id} onClick={()=>setTasks(ts=>ts.map((t,j)=>j===i?{...t,selected:!t.selected}:t))}
+              style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",
+                borderRadius:12,cursor:"pointer",transition:"all 0.15s",
+                background: task.selected ? "rgba(247,159,121,0.08)" : "#2a2820",
+                border: `1px solid ${task.selected ? "rgba(247,159,121,0.3)" : "#4a4638"}`,
+              }}>
+              <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${task.selected?"#F79F79":"#4a4638"}`,
+                background:task.selected?"#F79F79":"transparent",flexShrink:0,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>
+                {task.selected && <span style={{color:"#2a2820",fontSize:10,fontWeight:800}}>✓</span>}
+              </div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:600,color:task.selected?"#f5f0e8":"#87B6A7"}}>{task.text}</div>
+                {task.sub && <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#6b6b50",marginTop:2}}>{task.sub}</div>}
+              </div>
+              <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:task.selected?"#F79F79":"#6b6b50",
+                padding:"2px 8px",borderRadius:100,border:`1px solid ${task.selected?"rgba(247,159,121,0.3)":"#4a4638"}`}}>
+                +{task.xp} XP
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={()=>onConfirm(selected)} disabled={!selected.length}
+            style={{flex:1,background:"linear-gradient(135deg,#e8956a,#F79F79)",border:"none",
+              borderRadius:12,color:"#2a2820",padding:"12px",fontSize:13,fontWeight:800,
+              cursor:selected.length?"pointer":"default",opacity:selected.length?1:0.4,
+              fontFamily:"inherit"}}>
+            Load {selected.length} quest{selected.length!==1?"s":""} →
+          </button>
+          <button onClick={onDismiss}
+            style={{background:"none",border:"1px solid #4a4638",borderRadius:12,
+              color:"#87B6A7",padding:"12px 18px",fontSize:12,cursor:"pointer",
+              fontFamily:"'Space Mono',monospace"}}>
+            skip
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PAGE: PLAN
+// ═══════════════════════════════════════════════════════════════════
+function PlanPage({ plannedDays, onChange }) {
+  const [view, setView] = useState("week");   // "week" | "queue"
+  const [selectedDay, setSelectedDay] = useState(getDateKey(1)); // default tomorrow
+  const [addingTo, setAddingTo] = useState(null);
+  const [newText, setNewText] = useState("");
+  const [newSub, setNewSub] = useState("");
+  const [newXP, setNewXP] = useState(50);
+  const days = getWeekDays();
+
+  // Days that have tasks planned (excluding today)
+  const activeDays = days.filter(d => !d.isToday && (plannedDays[d.key]?.length > 0));
+
+  function addTask(dateKey) {
+    if (!newText.trim()) return;
+    const task = {id:uid(), text:newText.trim(), sub:newSub.trim(), xp:newXP};
+    onChange(prev => ({...prev, [dateKey]: [...(prev[dateKey]||[]), task]}));
+    setNewText(""); setNewSub(""); setNewXP(50); setAddingTo(null);
+  }
+
+  function removeTask(dateKey, taskId) {
+    onChange(prev => {
+      const updated = (prev[dateKey]||[]).filter(t => t.id !== taskId);
+      const next = {...prev};
+      if (updated.length) next[dateKey] = updated;
+      else delete next[dateKey];
+      return next;
+    });
+  }
+
+  function editTask(dateKey, taskId, field, val) {
+    onChange(prev => ({...prev,
+      [dateKey]: (prev[dateKey]||[]).map(t => t.id===taskId ? {...t,[field]:val} : t)
+    }));
+  }
+
+  // Move a task to a different day
+  function moveTask(fromKey, taskId, toKey) {
+    const task = (plannedDays[fromKey]||[]).find(t => t.id===taskId);
+    if (!task) return;
+    onChange(prev => {
+      const next = {...prev};
+      next[fromKey] = (next[fromKey]||[]).filter(t => t.id !== taskId);
+      if (!next[fromKey].length) delete next[fromKey];
+      next[toKey] = [...(next[toKey]||[]), {...task, id:uid()}];
+      return next;
+    });
+  }
+
+  const InputStyle = {background:"#2a2820",border:"1px solid #4a4638",borderRadius:8,
+    color:"#f5f0e8",fontFamily:"inherit",outline:"none",padding:"8px 10px",fontSize:13};
+
+  const futureDays = days.filter(d => !d.isToday);
+
+  return (
+    <div>
+      {/* View toggle */}
+      <div style={{display:"flex",gap:8,marginBottom:24}}>
+        {[{id:"week",label:"📅 Calendar"},
+          {id:"queue",label:"📋 Queue"}].map(v => (
+          <button key={v.id} onClick={()=>setView(v.id)} style={{
+            flex:1, padding:"10px", borderRadius:12, cursor:"pointer",
+            fontSize:12, fontFamily:"'Space Mono',monospace",
+            background: view===v.id ? "rgba(247,159,121,0.1)" : "#33312a",
+            border: view===v.id ? "1px solid rgba(247,159,121,0.3)" : "1px solid #4a4638",
+            color: view===v.id ? "#F79F79" : "#87B6A7",
+            transition:"all 0.15s",
+          }}>{v.label}</button>
+        ))}
+      </div>
+
+      {/* ── CALENDAR VIEW ── */}
+      {view === "week" && (
+        <div>
+          {/* Day selector strip */}
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:8,marginBottom:20,
+            scrollbarWidth:"none"}}>
+            {futureDays.map(day => {
+              const count = (plannedDays[day.key]||[]).length;
+              const isSelected = selectedDay === day.key;
+              return (
+                <div key={day.key} onClick={()=>setSelectedDay(day.key)}
+                  style={{flexShrink:0, width:62, padding:"10px 6px", borderRadius:12,
+                    textAlign:"center", cursor:"pointer", transition:"all 0.15s",
+                    background: isSelected ? "rgba(247,159,121,0.12)" : "#33312a",
+                    border: isSelected ? "2px solid rgba(247,159,121,0.5)" : "1px solid #4a4638",
+                  }}>
+                  <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",
+                    color:isSelected?"#F7D08A":"#87B6A7",textTransform:"uppercase",marginBottom:4}}>
+                    {day.dayName}
+                  </div>
+                  <div style={{fontSize:18,fontWeight:800,
+                    color:isSelected?"#F79F79":"#f5f0e8"}}>
+                    {day.dayNum}
+                  </div>
+                  <div style={{fontSize:8,fontFamily:"'Space Mono',monospace",
+                    color:isSelected?"#F7D08A":"#6b6b50",marginTop:2}}>
+                    {day.month}
+                  </div>
+                  {count > 0 && (
+                    <div style={{marginTop:5,width:18,height:18,borderRadius:"50%",
+                      background:"#F79F79",color:"#2a2820",fontSize:9,fontWeight:800,
+                      display:"flex",alignItems:"center",justifyContent:"center",margin:"5px auto 0"}}>
+                      {count}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Selected day tasks */}
+          <div style={{background:"#33312a",borderRadius:18,padding:"18px 20px",border:"1px solid #4a4638"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+              <div>
+                <div style={{fontSize:16,fontWeight:800,color:"#f5f0e8"}}>
+                  {formatDateKey(selectedDay)}
+                </div>
+                <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginTop:2}}>
+                  {(plannedDays[selectedDay]||[]).length} quest{(plannedDays[selectedDay]||[]).length!==1?"s":""} planned
+                </div>
+              </div>
+              <button onClick={()=>setAddingTo(selectedDay)}
+                style={{background:"rgba(247,159,121,0.1)",border:"1px solid rgba(247,159,121,0.3)",
+                  borderRadius:10,color:"#F79F79",padding:"7px 14px",fontSize:12,
+                  cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>
+                + add quest
+              </button>
+            </div>
+
+            {(plannedDays[selectedDay]||[]).length === 0 && addingTo !== selectedDay && (
+              <div style={{textAlign:"center",padding:"30px 20px",color:"#4a4638",
+                fontFamily:"'Space Mono',monospace",fontSize:12}}>
+                Nothing planned — add your first quest!
+              </div>
+            )}
+
+            {(plannedDays[selectedDay]||[]).map(task => (
+              <PlannedTaskRow key={task.id} task={task} dateKey={selectedDay}
+                futureDays={futureDays} onRemove={removeTask} onEdit={editTask} onMove={moveTask}/>
+            ))}
+
+            {/* Inline add form */}
+            {addingTo === selectedDay && (
+              <AddTaskInline
+                newText={newText} setNewText={setNewText}
+                newSub={newSub} setNewSub={setNewSub}
+                newXP={newXP} setNewXP={setNewXP}
+                onAdd={()=>addTask(selectedDay)}
+                onCancel={()=>{setAddingTo(null);setNewText("");setNewSub("");setNewXP(50);}}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── QUEUE VIEW ── */}
+      {view === "queue" && (
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {futureDays.map(day => {
+            const tasks = plannedDays[day.key] || [];
+            const isOpen = addingTo === day.key;
+            const daysFromNow = futureDays.indexOf(day) + 1;
+            const queueLabel = daysFromNow===1?"Tomorrow":daysFromNow===2?"Day After":
+              daysFromNow<=7?`In ${daysFromNow} days`:`In ${Math.ceil(daysFromNow/7)} week${Math.ceil(daysFromNow/7)>1?"s":""}`;
+
+            if (tasks.length === 0 && !isOpen) return (
+              <div key={day.key}
+                style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
+                  borderRadius:14,border:"1px dashed #4a4638",cursor:"pointer",
+                  background:"none",transition:"all 0.15s"}}
+                onClick={()=>setAddingTo(day.key)}>
+                <div style={{width:44,textAlign:"center"}}>
+                  <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#6b6b50",textTransform:"uppercase"}}>{day.dayName}</div>
+                  <div style={{fontSize:16,fontWeight:700,color:"#4a4638"}}>{day.dayNum}</div>
+                </div>
+                <span style={{fontSize:11,fontFamily:"'Space Mono',monospace",color:"#4a4638"}}>
+                  {queueLabel} · tap to plan
+                </span>
+              </div>
+            );
+
+            return (
+              <div key={day.key} style={{background:"#33312a",borderRadius:14,
+                border:"1px solid #4a4638",overflow:"hidden"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
+                  borderBottom: tasks.length||isOpen ? "1px solid #4a4638" : "none"}}>
+                  <div style={{width:44,textAlign:"center",flexShrink:0}}>
+                    <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase"}}>{day.dayName}</div>
+                    <div style={{fontSize:17,fontWeight:800,color:"#F79F79"}}>{day.dayNum}</div>
+                  </div>
+                  <div style={{flex:1}}>
+                    <span style={{fontSize:12,fontWeight:700,color:"#f5f0e8"}}>{queueLabel}</span>
+                    <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginLeft:8}}>
+                      {tasks.length} quest{tasks.length!==1?"s":""}
+                    </span>
+                  </div>
+                  <button onClick={()=>setAddingTo(isOpen?null:day.key)}
+                    style={{background:"rgba(247,159,121,0.08)",border:"1px solid rgba(247,159,121,0.2)",
+                      borderRadius:8,color:"#F79F79",padding:"5px 12px",fontSize:11,cursor:"pointer",
+                      fontFamily:"'Space Mono',monospace"}}>
+                    {isOpen?"cancel":"+ add"}
+                  </button>
+                </div>
+                <div style={{padding:tasks.length||isOpen?"10px 14px 8px":0}}>
+                  {tasks.map(task => (
+                    <PlannedTaskRow key={task.id} task={task} dateKey={day.key}
+                      futureDays={futureDays} onRemove={removeTask} onEdit={editTask} onMove={moveTask}/>
+                  ))}
+                  {isOpen && (
+                    <AddTaskInline
+                      newText={newText} setNewText={setNewText}
+                      newSub={newSub} setNewSub={setNewSub}
+                      newXP={newXP} setNewXP={setNewXP}
+                      onAdd={()=>addTask(day.key)}
+                      onCancel={()=>{setAddingTo(null);setNewText("");setNewSub("");setNewXP(50);}}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Reusable add-task inline form
+function AddTaskInline({ newText, setNewText, newSub, setNewSub, newXP, setNewXP, onAdd, onCancel }) {
+  return (
+    <div style={{background:"#2a2820",borderRadius:12,padding:"12px 14px",marginTop:8,
+      border:"1px solid rgba(247,159,121,0.2)"}}>
+      <input value={newText} onChange={e=>setNewText(e.target.value)}
+        onKeyDown={e=>e.key==="Enter"&&newText.trim()&&onAdd()}
+        placeholder="Quest name..." autoFocus
+        style={{width:"100%",background:"transparent",border:"none",
+          borderBottom:"1px solid #4a4638",color:"#f5f0e8",fontSize:14,
+          fontWeight:600,padding:"2px 0 8px",marginBottom:8,fontFamily:"inherit",outline:"none"}}/>
+      <input value={newSub} onChange={e=>setNewSub(e.target.value)}
+        placeholder="Note (optional)"
+        style={{width:"100%",background:"transparent",border:"none",color:"#87B6A7",
+          fontSize:11,padding:"2px 0 8px",fontFamily:"'Space Mono',monospace",outline:"none"}}/>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginTop:8}}>
+        <div style={{display:"flex",gap:6,flex:1,flexWrap:"wrap"}}>
+          {[10,25,50,100].map(v => (
+            <button key={v} onClick={()=>setNewXP(v)} style={{
+              padding:"4px 10px",borderRadius:99,fontSize:10,cursor:"pointer",
+              fontFamily:"'Space Mono',monospace",
+              background: newXP===v ? "rgba(247,159,121,0.2)" : "transparent",
+              border: newXP===v ? "1px solid rgba(247,159,121,0.5)" : "1px solid #4a4638",
+              color: newXP===v ? "#F79F79" : "#87B6A7",
+            }}>⚡{v}</button>
+          ))}
+        </div>
+        <button onClick={onCancel}
+          style={{background:"none",border:"1px solid #4a4638",borderRadius:8,
+            color:"#87B6A7",padding:"6px 12px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>
+          cancel
+        </button>
+        <button onClick={onAdd} disabled={!newText.trim()}
+          style={{background:"linear-gradient(135deg,#e8956a,#F79F79)",border:"none",
+            borderRadius:8,color:"#2a2820",padding:"7px 16px",fontSize:12,fontWeight:700,
+            cursor:newText.trim()?"pointer":"default",opacity:newText.trim()?1:0.4,
+            fontFamily:"inherit"}}>
+          add →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Individual planned task row with move + remove
+function PlannedTaskRow({ task, dateKey, futureDays, onRemove, onEdit, onMove }) {
+  const [hov, setHov] = useState(false);
+  const [showMove, setShowMove] = useState(false);
+  return (
+    <div style={{position:"relative"}}>
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>{setHov(false);setShowMove(false);}}
+        style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",
+          borderRadius:10,marginBottom:6,transition:"all 0.15s",
+          background: hov ? "#3d3a30" : "transparent",
+          border: "1px solid " + (hov ? "#4a4638" : "transparent"),
+        }}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13,fontWeight:600,color:"#f5f0e8"}}>{task.text}</div>
+          {task.sub && <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#6b6b50",marginTop:2}}>{task.sub}</div>}
+        </div>
+        <span style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7",
+          padding:"2px 8px",borderRadius:100,border:"1px solid #4a4638",flexShrink:0}}>
+          +{task.xp} XP
+        </span>
+        {hov && <>
+          <button onClick={()=>setShowMove(s=>!s)}
+            style={{background:"rgba(135,182,167,0.1)",border:"1px solid rgba(135,182,167,0.2)",
+              borderRadius:7,color:"#87B6A7",padding:"4px 8px",fontSize:10,cursor:"pointer",
+              fontFamily:"'Space Mono',monospace",flexShrink:0}}>
+            move
+          </button>
+          <button onClick={()=>onRemove(dateKey, task.id)}
+            style={{background:"none",border:"none",color:"#6b6b50",fontSize:18,
+              cursor:"pointer",padding:"0 2px",lineHeight:1,flexShrink:0}}>
+            ×
+          </button>
+        </>}
+      </div>
+      {showMove && (
+        <div style={{position:"absolute",right:0,top:"100%",zIndex:100,
+          background:"#2a2820",border:"1px solid #4a4638",borderRadius:10,
+          padding:"8px 0",minWidth:160,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}}>
+          {futureDays.filter(d => d.key !== dateKey).slice(0,8).map(d => (
+            <div key={d.key} onClick={()=>{onMove(dateKey,task.id,d.key);setShowMove(false);}}
+              style={{padding:"8px 16px",fontSize:12,cursor:"pointer",color:"#f5f0e8",
+                fontFamily:"'Space Mono',monospace",
+                ':hover':{background:"#33312a"}}}>
+              {d.dayName} {d.dayNum} {d.month}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════════════════════════════
+function spawnConfetti(count = 40) {
+  const colors = ["#ff6b6b","#ffd700","#7c6af7","#c084fc","#E3F09B","#87B6A7","#F79F79"];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement("div");
+    el.style.cssText = `position:fixed;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:2px;left:${Math.random()*100}vw;top:-10px;z-index:900;animation:confetti ${0.8+Math.random()*1.2}s ease-in ${Math.random()*0.5}s forwards;pointer-events:none;`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ROOT APP
+// ═══════════════════════════════════════════════════════════════════
+function App() {
+  const [tab, setTab] = useState("today");
+
+  // Core state — load from localStorage
+  const saved = loadFromStorage();
+  const [cats, setCats] = useState(() => saved?.cats || DEFAULT_CATS);
+  const [done, setDone] = useState(() => new Set(saved?.done || []));
+  const [owned, setOwned] = useState(() => new Set(saved?.owned || []));
+  const [blobOwned, setBlobOwned] = useState(() => new Set(saved?.blobOwned || []));
+  const [earnedLS, setEarnedLS] = useState(() => saved?.earnedLS || []);
+  const [lsHistory, setLsHistory] = useState(() => saved?.lsHistory || []);
+  const [history, setHistory] = useState(() => saved?.history || []);
+  const [templates, setTemplates] = useState(() => saved?.templates || []);
+  const [dailySticker, setDailySticker] = useState(() => {
+    // pick sticker for today — persist across page loads for same day
+    if (saved?.dailyStickerDate === todayKey() && saved?.dailyStickerId) {
+      return LARGE_STICKERS.find(l => l.id === saved.dailyStickerId) || pickLargeSticker(saved?.lsHistory);
+    }
+    return pickLargeSticker(saved?.lsHistory || []);
+  });
+  const [plannedDays, setPlannedDays] = useState(() => saved?.plannedDays || {});
+  const [goodMorning, setGoodMorning] = useState(null);  // tasks to show in morning modal
+  const [drop, setDrop] = useState(null);
+  const [showSave, setShowSave] = useState(false);
+  const [toast, setToast] = useState({ msg:"", show:false });
+
+  const toastTimer = useRef(null);
+  const prevDone = useRef(done.size);
+  const prevStreak = useRef(0);
+  const blobCounter = useRef(saved?.blobCounter || 0);
+  const maxedFiredRef = useRef(saved?.maxedFired || false);
+
+  // Derived
+  const allTasks = cats.flatMap(c => c.tasks);
+  const xp = [...done].reduce((s, id) => s + (allTasks.find(t => t.id === id)?.xp || 0), 0);
+  const maxXp = allTasks.reduce((s, t) => s + t.xp, 0);
+  const catsCleared = cats.filter(c => c.tasks.length > 0 && c.tasks.every(t => done.has(t.id))).length;
+  const maxedToday = xp >= maxXp && maxXp > 0;
+
+  const streak = (() => {
+    if (!history.length) return 0;
+    const sorted = [...history].sort((a,b) => b.date.localeCompare(a.date));
+    let count = 0, prev = null;
+    for (const d of sorted) {
+      const dt = new Date(d.date + "T12:00:00");
+      if (!prev) { count = 1; prev = dt; continue; }
+      if ((prev - dt) / 86400000 <= 1.5) { count++; prev = dt; } else break;
+    }
+    return count;
+  })();
+
+  const stats = { xp, done: done.size, catsCleared, allDone: maxedToday, streak };
+
+  // Check for today's planned tasks on first load
+  useEffect(() => {
+    const todayPlanned = plannedDays[todayKey()] || [];
+    if (todayPlanned.length > 0 && (saved?.lastGoodMorningDate !== todayKey())) {
+      setGoodMorning(todayPlanned);
+    }
+  }, []);
+
+  // Persist to localStorage
+  useEffect(() => {
+    saveToStorage({
+      cats, done:[...done], owned:[...owned], blobOwned:[...blobOwned],
+      earnedLS, lsHistory, history, templates,
+      dailyStickerDate: todayKey(), dailyStickerId: dailySticker?.id,
+      blobCounter: blobCounter.current, maxedFired: maxedFiredRef.current,
+      blobDate: todayKey(), plannedDays,
+    });
+  }, [cats, done, owned, blobOwned, earnedLS, lsHistory, history, templates, dailySticker, plannedDays]);
+
+  function showToast(msg) {
+    clearTimeout(toastTimer.current);
+    setToast({ msg, show:true });
+    toastTimer.current = setTimeout(() => setToast(t => ({...t, show:false})), 2400);
+  }
+
+  function toggleTask(id) {
+    const wasDone = done.has(id);
+    if (wasDone) return; // can't uncheck — keep it motivating
+    const task = allTasks.find(t => t.id === id);
+    setDone(prev => { const n = new Set(prev); n.add(id); return n; });
+    if (task) showToast(`${TASK_TOASTS[Math.floor(Math.random()*TASK_TOASTS.length)]}  +${task.xp} XP`);
+  }
+
+  // React to done changing
+  useEffect(() => {
+    if (done.size <= prevDone.current) { prevDone.current = done.size; return; }
+    prevDone.current = done.size;
+
+    blobCounter.current += 1;
+    if (blobCounter.current >= 3) {
+      blobCounter.current = 0;
+      const b = pickBlob(blobOwned);
+      setBlobOwned(prev => new Set([...prev, b.id]));
+      setTimeout(() => setDrop({...b, type:"blob"}), 200);
+      return;
+    }
+
+    // Sticker drop from packs
+    const unlockedPacks = Object.keys(PACKS).filter(k => PACKS[k].unlockFn(stats));
+    if (unlockedPacks.length && Math.random() > 0.4) {
+      const key = unlockedPacks[Math.floor(Math.random() * unlockedPacks.length)];
+      const d = rollDrop(key, owned, stats);
+      if (d) {
+        setOwned(prev => new Set([...prev, d.id]));
+        setTimeout(() => setDrop(d), 300);
+      }
+    }
+  }, [done.size]);
+
+  // Big daily sticker on max XP
+  useEffect(() => {
+    if (maxedToday && !maxedFiredRef.current && dailySticker) {
+      maxedFiredRef.current = true;
+      spawnConfetti(60);
+      setEarnedLS(prev => [...new Set([...prev, dailySticker.id])]);
+      setLsHistory(prev => [...new Set([...prev, dailySticker.id])]);
+      setTimeout(() => setDrop({...dailySticker, type:"large"}), 800);
+    }
+  }, [maxedToday]);
+
+  // Streak stickers
+  useEffect(() => {
+    if (streak <= prevStreak.current) return;
+    prevStreak.current = streak;
+    PACKS.streak_pack.stickers.forEach(s => {
+      if (streak >= (s.streakReq || 1) && !owned.has(s.id) && Math.random() < 0.85) {
+        setTimeout(() => {
+          setOwned(prev => new Set([...prev, s.id]));
+          setDrop({...s, packKey:"streak_pack"});
+        }, 600);
+      }
+    });
+  }, [streak]);
+
+  function startFresh() {
+    if (done.size > 0) {
+      const key = todayKey();
+      const se = [...owned].map(sid => {
+        for (const p of Object.values(PACKS)) { const s = p.stickers.find(st => st.id === sid); if (s) return s; }
+        return null;
+      }).filter(Boolean).slice(-8);
+      setHistory(h => [...h.filter(d => d.date !== key), { date:key, xp, tasksCompleted:done.size, stickersEarned:se }]);
+    }
+    maxedFiredRef.current = false;
+    blobCounter.current = 0;
+    setDone(new Set());
+    setDailySticker(pickLargeSticker([...lsHistory]));
+    // Check if tasks are planned for the new day
+    const todayPlanned = plannedDays[todayKey()] || [];
+    if (todayPlanned.length > 0) {
+      setTimeout(() => setGoodMorning(todayPlanned), 400);
+    }
+  }
+
+  function handleGoodMorning(selectedTasks) {
+    if (selectedTasks.length > 0) {
+      // Add as a new "Planned" category or merge into first existing cat
+      const plannedCat = {
+        id: uid(), name:"Planned", emoji:"📋", color:"#87B6A7",
+        tasks: selectedTasks.map(t => ({...t, id:uid()}))
+      };
+      setCats(prev => [...prev, plannedCat]);
+    }
+    // Remove loaded tasks from plannedDays for today
+    setPlannedDays(prev => {
+      const next = {...prev};
+      delete next[todayKey()];
+      return next;
+    });
+    // Mark good morning shown today
+    saveToStorage({...loadFromStorage(), lastGoodMorningDate: todayKey()});
+    setGoodMorning(null);
+  }
+
+  function handleRestore(data) {
+    setOwned(new Set(data.o || []));
+    setBlobOwned(new Set(data.b || []));
+    setHistory(data.h || []);
+    setLsHistory(data.ls || []);
+    showToast("✓ Progress restored!");
+  }
+
+  function saveTpl(name) {
+    const tpl = { id:uid(), name, cats: cats.map(c => ({...c,id:uid(),tasks:c.tasks.map(t=>({...t,id:uid()}))})) };
+    setTemplates(ts => [...ts, tpl]);
+    showToast(`Saved template: ${name}`);
+  }
+
+  function loadTpl(tpl) {
+    setCats(tpl.cats.map(c => ({...c, id:uid(), tasks:c.tasks.map(t=>({...t, id:uid()}))})));
+    setDone(new Set());
+    showToast(`Loaded: ${tpl.name}`);
+  }
+
+  const TABS = [
+    {id:"today",   icon:"⚡", label:"Today"},
+    {id:"plan",    icon:"🗓️", label:"Plan", badge: Object.values(plannedDays).reduce((s,a)=>s+a.length,0) || null},
+    {id:"edit",    icon:"✏️", label:"Edit"},
+    {id:"stickers",icon:"✨", label:"Stickers"},
+    {id:"history", icon:"📅", label:"History"},
+  ];
+
+  return (
+    <div style={{minHeight:"100vh", background:"#4a4638", color:"#f5f0e8",
+      backgroundImage:"radial-gradient(ellipse at 15% 0%,rgba(247,159,121,0.07) 0%,transparent 55%), radial-gradient(ellipse at 85% 100%,rgba(247,159,121,0.04) 0%,transparent 55%)"}}>
+
+      {/* Sticky nav */}
+      <div style={{position:"sticky",top:0,zIndex:200,background:"rgba(30,28,22,0.95)",backdropFilter:"blur(14px)",borderBottom:"1px solid #4a4638"}}>
+        <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px",display:"flex",alignItems:"center",height:54,gap:4}}>
+          <span style={{fontWeight:800,fontSize:15,marginRight:"auto",background:"linear-gradient(135deg,#fff 0%,#F79F79 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",letterSpacing:"-0.5px"}}>Quest Day</span>
+          {streak > 0 && <span style={{fontFamily:"'Space Mono',monospace",fontSize:11,color:"#F79F79",marginRight:8}}>🔥{streak}</span>}
+          {maxXp > 0 && <span style={{fontFamily:"'Space Mono',monospace",fontSize:10,color:xp>=maxXp?"#E3F09B":"#87B6A7",marginRight:8}}>{xp}/{maxXp} XP</span>}
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              background: tab===t.id ? "rgba(247,159,121,0.09)" : "none",
+              border: tab===t.id ? "1px solid rgba(247,159,121,0.2)" : "1px solid transparent",
+              borderRadius:9, color:tab===t.id?"#F79F79":"#87B6A7",
+              padding:"6px 14px", fontSize:13, cursor:"pointer", fontFamily:"inherit",
+              fontWeight: tab===t.id ? 700 : 500, transition:"all 0.15s",
+          }}>
+              {t.icon} {t.label}
+              {t.badge > 0 && <span style={{marginLeft:5,background:"#F79F79",color:"#2a2820",
+                borderRadius:"99px",fontSize:9,fontWeight:800,padding:"1px 6px",
+                verticalAlign:"middle"}}>{t.badge}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"32px 24px 100px"}}>
+
+        {/* Page heading */}
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontFamily:"'Space Mono',monospace",fontSize:9,letterSpacing:"0.14em",color:"#6b6b50",textTransform:"uppercase",marginBottom:8}}>
+            {new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})}
+          </div>
+          <h1 style={{fontSize:"clamp(22px,3.5vw,38px)",fontWeight:800,lineHeight:1.1,
+            background:"linear-gradient(135deg,#fff 0%,#F79F79 50%,#F7D08A 100%)",
+            WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text",margin:0}}>
+            {tab==="today"?"Today's Quests":tab==="plan"?"Plan Ahead":tab==="edit"?"Build Your Day":tab==="stickers"?"Sticker Collection":"History"}
+          </h1>
+        </div>
+
+        {/* Two-column layout for today */}
+        {tab === "today" ? (
+          <div style={{display:"grid",gridTemplateColumns:"1fr 340px",gap:28,alignItems:"start"}}>
+            <TodayPage cats={cats} done={done} onToggle={toggleTask} xp={xp} maxXp={maxXp} onStartFresh={startFresh} dailySticker={dailySticker} maxedToday={maxedToday}/>
+            {/* Right sidebar: mini sticker preview */}
+            <div style={{position:"sticky",top:80}}>
+              <div style={{background:"#33312a",border:"1px solid #4a4638",borderRadius:18,padding:"18px 16px",marginBottom:16}}>
+                <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Your Collection</div>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+                  {[
+                    {emoji:"✨",val:Object.values(PACKS).flatMap(p=>p.stickers).filter(s=>owned.has(s.id)).length,label:"stickers"},
+                    {emoji:"🫧",val:blobOwned.size,label:"blobs today"},
+                    {emoji:"🏆",val:earnedLS.length,label:"daily"},
+                  ].map(s => (
+                    <div key={s.label} style={{textAlign:"center",flex:1}}>
+                      <div style={{fontSize:18}}>{s.emoji}</div>
+                      <div style={{fontSize:17,fontWeight:800,color:"#F79F79"}}>{s.val}</div>
+                      <div style={{fontSize:8,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase"}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setTab("stickers")} style={{width:"100%",background:"rgba(247,159,121,0.06)",border:"1px solid rgba(247,159,121,0.18)",borderRadius:10,color:"#F79F79",padding:"9px",fontSize:11,cursor:"pointer",fontFamily:"'Space Mono',monospace"}}>view collection →</button>
+              </div>
+
+              {/* Rank card */}
+              {(() => { const rank = getRank(xp); const next = RANKS.find(r => r.min > xp); const pct = next ? Math.min((xp/next.min)*100,100) : 100; return (
+                <div style={{background:"#33312a",border:"1px solid #4a4638",borderRadius:18,padding:"18px 16px"}}>
+                  <div style={{fontSize:9,fontFamily:"'Space Mono',monospace",color:"#87B6A7",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Rank</div>
+                  <div style={{fontSize:22,fontWeight:800,color:"#F79F79",marginBottom:4}}>{rank.icon} {rank.label}</div>
+                  {next && <>
+                    <div style={{fontSize:10,fontFamily:"'Space Mono',monospace",color:"#87B6A7",marginBottom:8}}>{xp}/{next.min} XP → {next.icon} {next.label}</div>
+                    <div style={{background:"#3d3a30",borderRadius:100,height:6,overflow:"hidden"}}>
+                      <div style={{height:"100%",borderRadius:100,width:`${pct}%`,background:"linear-gradient(90deg,#e8956a,#F79F79)",transition:"width 0.5s ease"}}/>
+                    </div>
+                  </>}
+                </div>
+              )})()}
+            </div>
+          </div>
+        ) : (
+          <div style={{maxWidth:740,margin:"0 auto"}}>
+            {tab==="plan"      && <PlanPage plannedDays={plannedDays} onChange={setPlannedDays}/>}
+            {tab==="edit"     && <EditPage cats={cats} onChange={setCats} templates={templates} onSaveTpl={saveTpl} onLoadTpl={loadTpl} onDeleteTpl={id=>setTemplates(ts=>ts.filter(t=>t.id!==id))}/>}
+            {tab==="stickers" && <StickersPage owned={owned} blobOwned={blobOwned} stats={stats} onSave={()=>setShowSave(true)} earnedLS={earnedLS}/>}
+            {tab==="history"  && <HistoryPage history={history} streak={streak}/>}
+          </div>
+        )}
+      </div>
+
+      {/* Good morning modal */}
+      {goodMorning && <GoodMorningModal
+        plannedTasks={goodMorning}
+        onConfirm={handleGoodMorning}
+        onDismiss={()=>{saveToStorage({...loadFromStorage(),lastGoodMorningDate:todayKey()});setGoodMorning(null);}}
+      />}
+
+      {/* Drop modal */}
+      {drop && <DropModal drop={drop} onClose={() => setDrop(null)}/>}
+
+      {/* Save modal */}
+      {showSave && <SaveModal owned={owned} blobOwned={blobOwned} history={history} streak={streak} lsHistory={lsHistory} onClose={()=>setShowSave(false)} onRestore={handleRestore}/>}
+
+      {/* Toast */}
+      <div style={{position:"fixed",bottom:28,left:"50%",transform:`translateX(-50%) translateY(${toast.show?0:60}px)`,opacity:toast.show?1:0,transition:"all 0.35s cubic-bezier(0.34,1.56,0.64,1)",background:"#3d3a30",border:"1px solid #4a4638",borderRadius:14,padding:"11px 20px",fontFamily:"'Space Mono',monospace",fontSize:12,color:"#F79F79",zIndex:300,boxShadow:"0 10px 40px rgba(0,0,0,0.6)",pointerEvents:"none",whiteSpace:"nowrap"}}>
+        {toast.msg}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById("root"));
+</script>
+</body>
+</html>
